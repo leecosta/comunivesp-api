@@ -1,4 +1,6 @@
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 function verificarDominioUnivesp(email) {
   const dominio = email.split("@")[1];
@@ -11,27 +13,15 @@ function validarFormatoEmail(email) {
 }
 
 async function enviarEmail(email, token) {
-  const transporter = nodemailer.createTransport({
-    // service: "gmail",
-    // auth: {
-    //   user: process.env.EMAIL_USER,
-    //   pass: process.env.EMAIL_PASSWORD,
-    // },
-    host: "smtp.sendgrid.net",
-    port: 587,
-    secure: false, // Para a porta 587, use secure: false
-    auth: {
-      user: "apikey",
-      pass: process.env.SENDGRID_API_KEY,
-    },
-  });
-
   const link = `${process.env.BASE_URL}/auth/verificar-email?token=${token}`;
 
-  const mailOptions = {
-    from: `Comunivesp ${process.env.EMAIL_USER}`,
+  const msg = {
     to: email,
-    subject: "Verifique seu e-mail",
+    from: {
+      name: "Comunivesp",
+      email: process.env.EMAIL_USER,
+    },
+    subject: "Verificação de Conta",
     html: `
       <h2>Confirme seu e-mail</h2>
       <p>Clique no link abaixo para verificar seu e-mail:</p>
@@ -39,13 +29,15 @@ async function enviarEmail(email, token) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("E-mail enviado:", info.response);
-    console.log("Destinatários Aceitos:", info.accepted);
-    console.log("Destinatários Rejeitados:", info.rejected);
+    console.log("Tentando enviar e-mail via API HTTP do SendGrid...");
+    await sgMail.send(msg);
+    console.log("E-mail enviado com sucesso via SendGrid API!");
   } catch (error) {
-    console.error("Erro ao enviar o e-mail:", error);
-    throw new Error("Falha ao enviar e-mail de verificação.");
+    console.error("Erro CRÍTICO ao enviar e-mail via SendGrid API:", error);
+    if (error.response) {
+      console.error(error.response.body);
+    }
+    throw new Error("O serviço de e-mail falhou.");
   }
 }
 
