@@ -12,10 +12,17 @@ function validarFormatoEmail(email) {
 
 async function enviarEmail(email, token) {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    // service: "gmail",
+    // auth: {
+    //   user: process.env.EMAIL_USER,
+    //   pass: process.env.EMAIL_PASSWORD,
+    // },
+    host: "smtp.sendgrid.net",
+    port: 587,
+    secure: false, // Para a porta 587, use secure: false
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      user: "apikey",
+      pass: process.env.SENDGRID_API_KEY,
     },
   });
 
@@ -34,6 +41,8 @@ async function enviarEmail(email, token) {
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log("E-mail enviado:", info.response);
+    console.log("Destinatários Aceitos:", info.accepted);
+    console.log("Destinatários Rejeitados:", info.rejected);
   } catch (error) {
     console.error("Erro ao enviar o e-mail:", error);
     throw new Error("Falha ao enviar e-mail de verificação.");
