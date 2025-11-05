@@ -8,6 +8,8 @@ async function getUser(req, res) {
     where: { id: userId },
     include: {
       eixo: true,
+      polo: true,
+      especialidade: true,
     },
   });
 
@@ -28,6 +30,20 @@ async function getUser(req, res) {
           nome: usuario.eixo.nome,
         }
       : null,
+    poloId: usuario.poloId,
+    polo: usuario.polo
+      ? {
+          id: usuario.polo.id,
+          nome: usuario.polo.nome,
+        }
+      : null,
+    especialidadeId: usuario.especialidadeId,
+    especialidade: usuario.especialidade
+      ? {
+          id: usuario.especialidade.id,
+          nome: usuario.especialidade.nome,
+        }
+      : null,
   });
 }
 
@@ -41,9 +57,29 @@ async function listarEixos(req, res) {
   return res.json(eixos);
 }
 
+async function listarPolos(req, res) {
+  const polos = await prisma.polo.findMany({
+    orderBy: {
+      nome: "asc",
+    },
+  });
+
+  return res.json(polos);
+}
+
+async function listarEspecialidades(req, res) {
+  const especialidades = await prisma.especialidade.findMany({
+    orderBy: {
+      nome: "asc",
+    },
+  });
+
+  return res.json(especialidades);
+}
+
 async function atualizarUsuario(req, res) {
   const userId = req.params.id;
-  const { nome, eixoId, anoIngresso } = req.body;
+  const { nome, eixoId, poloId, especialidadeId, anoIngresso } = req.body;
 
   // Verifica se o usuário está tentando editar seus próprios dados
   if (userId !== req.usuarioId) {
@@ -58,8 +94,12 @@ async function atualizarUsuario(req, res) {
     throw new Error("Usuário não encontrado.");
   }
 
-  // Converte eixoId e anoIngresso para número se existirem
+  // Converte dados para número se existirem
   const eixoIdNumber = eixoId ? Number(eixoId) : null;
+  const poloIdNumber = poloId ? Number(poloId) : null;
+  const especialidadeIdNumber = especialidadeId
+    ? Number(especialidadeId)
+    : null;
   const anoIngressoNumber = anoIngresso ? Number(anoIngresso) : null;
 
   const usuarioAtualizado = await prisma.usuarios.update({
@@ -67,6 +107,8 @@ async function atualizarUsuario(req, res) {
     data: {
       nome,
       eixoId: eixoIdNumber,
+      poloId: poloIdNumber,
+      especialidadeId: especialidadeIdNumber,
       ano_ingresso: anoIngressoNumber,
     },
     select: {
@@ -74,9 +116,23 @@ async function atualizarUsuario(req, res) {
       nome: true,
       email: true,
       eixoId: true,
+      poloId: true,
+      especialidadeId: true,
       ano_ingresso: true,
       criado_em: true,
       eixo: {
+        select: {
+          id: true,
+          nome: true,
+        },
+      },
+      polo: {
+        select: {
+          id: true,
+          nome: true,
+        },
+      },
+      especialidade: {
         select: {
           id: true,
           nome: true,
@@ -93,7 +149,25 @@ async function atualizarUsuario(req, res) {
           nome: usuarioAtualizado.eixo.nome,
         }
       : null,
+    polo: usuarioAtualizado.polo
+      ? {
+          id: usuarioAtualizado.polo.id,
+          nome: usuarioAtualizado.polo.nome,
+        }
+      : null,
+    especialidade: usuarioAtualizado.especialidade
+      ? {
+          id: usuarioAtualizado.especialidade.id,
+          nome: usuarioAtualizado.especialidade.nome,
+        }
+      : null,
   });
 }
 
-module.exports = { getUser, listarEixos, atualizarUsuario };
+module.exports = {
+  getUser,
+  listarEixos,
+  listarPolos,
+  listarEspecialidades,
+  atualizarUsuario,
+};
