@@ -19,11 +19,27 @@ model usuarios {
     ano_ingresso                      Int?
     eixoId                            Int?      @db.Integer
     eixo                              Eixo?     @relation(fields: [eixoId], references: [id])
+    poloId                            Int?      @db.Integer
+    polo                              polo?     @relation(fields: [poloId], references: [id])
+    especialidadeId                   Int?      @db.Integer
+    especialidade                     especialidade?     @relation(fields: [especialidadeId], references: [id])
     duvidas_aluno                     duvidas[] @relation("DuvidasAluno")
     duvidas_professor                 duvidas[] @relation("DuvidasProfessor")
 }
 
 model Eixo {
+    id       Int        @id @default(autoincrement())
+    nome     String     @unique
+    usuarios usuarios[]
+}
+
+model polo {
+    id       Int        @id @default(autoincrement())
+    nome     String     @unique
+    usuarios usuarios[]
+}
+
+model especialidade {
     id       Int        @id @default(autoincrement())
     nome     String     @unique
     usuarios usuarios[]
